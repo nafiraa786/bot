@@ -22,11 +22,36 @@ logger = logging.getLogger(__name__)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Hello! I am your AI assistant. How can I help you today?")
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message or not update.message.text:
+async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.voice:
         return
 
-    user_text = update.message.text
+    file = await context.bot.get_file(update.message.voice.file_id)
+    file_path = f"voice_{update.message.voice.file_id}.ogg"
+    await file.download_to_drive(file_path)
+
+    transcript = await ai_service.transcribe_audio(file_path)
+    # Treat transcript as text message
+    update.message.text = transcript
+    await handle_message(update, context)
+
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.photo:
+        return
+
+    photo = update.message.photo[-1] # Best quality
+    file = await context.bot.get_file(photo.file_id)
+    # Pass image url to AI service
+    image_url = file.file_path
+
+    description = await ai_service.analyze_image(image_url, "What is in this image? Provide a brief description.")
+    await update.message.reply_text(f"I see: {description}")
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
+
+    user_text = update.message.text or ""
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
 
@@ -84,6 +109,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         memories = await memory_engine.retrieve_memories(user.id, user_text)
         memory_context = "Relevant information you remember about this user:\n" + "\n".join(memories) if memories else ""
 
+        # Plugin System
+        from app.plugins.time_plugin import TimePlugin
+        plugins = [TimePlugin()]
+        plugin_context = ""
+        for plugin in plugins:
+            res = await plugin.execute(user_text, {})
+            if res:
+                plugin_context += f"\n{res}"
+
         # Basic context from recent messages
         stmt = select(Message).where(Message.conversation_id == conversation.id).order_by(Message.created_at.desc()).limit(10)
         result = await db.execute(stmt)
@@ -97,9 +131,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         system_prompt = persona_manager.construct_system_prompt(persona)
         if memory_context:
             system_prompt += f"\n\n{memory_context}"
+        if plugin_context:
+            system_prompt += f"\n\nAdditional Context:{plugin_context}"
 
         # AI Safety & Moderation check
         moderation = await ai_service.analyze_sentiment_and_safety(user_text)
+
+        # Dynamic Relationship Scoring
+        emotion = moderation.get("detected_emotion", "").lower()
+        if "positive" in emotion or "happy" in emotion or "thank" in emotion:
+            user.relationship_score += 1
+        elif "negative" in emotion or "angry" in emotion or "sad" in emotion:
+            user.relationship_score -= 1
 
         if moderation.get("requires_approval"):
             # Queue for approval
@@ -134,14 +177,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Send reply
         await TelegramBotUtils.send_smart_reply(update, context, ai_response)
 
-        # Background task to extract memories
+        # Background task to extract memories and tags
         asyncio.create_task(memory_engine.extract_and_store_memories(user.id, user_text))
+
+        # Periodic tagging (simplified: every message for now)
+        tags = await ai_service.generate_tags(user_text)
+        conversation.tags = list(set((conversation.tags or []) + tags))
+        await db.commit()
 
 def setup_bot():
     application = Application.builder().token(settings.TELEGRAM_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    application.add_handler(MessageHandler(filters.VOICE, handle_voice))
+    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
     return application
 

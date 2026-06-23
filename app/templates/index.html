@@ -21,6 +21,7 @@
             <th>ID</th>
             <th>Username</th>
             <th>Name</th>
+            <th>Relationship Score</th>
             <th>Joined</th>
         </tr>
     </thead>
@@ -30,6 +31,7 @@
             <td>{{ user.telegram_id }}</td>
             <td>{{ user.username }}</td>
             <td>{{ user.first_name }} {{ user.last_name }}</td>
+            <td><span class="badge bg-info text-dark">{{ user.relationship_score }}</span></td>
             <td>{{ user.created_at }}</td>
         </tr>
         {% endfor %}

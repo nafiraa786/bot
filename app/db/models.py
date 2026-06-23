@@ -30,6 +30,7 @@ class Conversation(Base):
     type = Column(String)  # private, group
     last_message_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     summary = Column(Text, nullable=True)
+    tags = Column(JSON, default=[])
 
 class Message(Base):
     __tablename__ = "messages"

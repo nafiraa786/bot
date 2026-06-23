@@ -41,5 +41,17 @@ services:
       - db
       - redis
 
+  processor:
+    build: .
+    command: python -m app.services.moderation.processor
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/ai_assistant
+      - REDIS_URL=redis://redis:6379/0
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - db
+      - redis
+
 volumes:
   postgres_data:

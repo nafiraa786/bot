@@ -39,6 +39,17 @@ class AIService:
         )
         return response.choices[0].message.content
 
+    async def generate_tags(self, text: str) -> List[str]:
+        prompt = f"Generate 3-5 short tags (one word each) describing the topics in this text. Return as JSON list of strings.\nText: {text}"
+        response = await self.client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": "You are a tagging assistant. Output JSON only."},
+                      {"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        data = json.loads(response.choices[0].message.content)
+        return data.get("tags", [])
+
     async def analyze_sentiment_and_safety(self, text: str) -> Dict[str, Any]:
         prompt = (
             "Analyze the following text for safety and emotion. "
