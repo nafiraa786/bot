@@ -1,28 +1,58 @@
 {% extends "base.html" %}
 
+{% block title %}Approvals - AI Admin{% endblock %}
+
 {% block content %}
-<h2>Approval Queue</h2>
-<table class="table mt-4">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Reason</th>
-            <th>Content</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for approval in approvals %}
-        <tr>
-            <td>{{ approval.id }}</td>
-            <td><span class="badge bg-warning text-dark">{{ approval.reason }}</span></td>
-            <td>{{ approval.content }}</td>
-            <td>
-                <button class="btn btn-sm btn-success" onclick="approveItem({{ approval.id }})">Approve</button>
-                <button class="btn btn-sm btn-danger" onclick="rejectItem({{ approval.id }})">Reject</button>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<h2 class="fw-bold mb-4">Approval Queue</h2>
+
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0">Pending Messages</h5>
+    </div>
+    {% if approvals %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">ID</th>
+                    <th>Reason for Review</th>
+                    <th>Proposed Content</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for approval in approvals %}
+                <tr>
+                    <td class="ps-4">{{ approval.id }}</td>
+                    <td>
+                        <span class="badge bg-warning text-dark"><i class="fas fa-shield-alt me-1"></i> {{ approval.reason }}</span>
+                    </td>
+                    <td>
+                        <div class="p-2 bg-light rounded border-start border-4 border-warning">
+                            {{ approval.content }}
+                        </div>
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-success" onclick="approveItem({{ approval.id }})">
+                                <i class="fas fa-check me-1"></i> Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectItem({{ approval.id }})">
+                                <i class="fas fa-times me-1"></i> Reject
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-center py-5">
+        <i class="fas fa-clipboard-check fa-4x text-light mb-3"></i>
+        <h5 class="text-muted">Queue is empty</h5>
+        <p class="text-muted small">All messages have been processed.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

@@ -1,40 +1,98 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard - AI Admin{% endblock %}
+
 {% block content %}
-<h2>Dashboard</h2>
-<div class="row mt-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Dashboard Overview</h2>
+    <span class="text-muted"><i class="fas fa-calendar-alt me-1"></i> Today is {{ now }}</span>
+</div>
+
+<div class="row g-4 mb-5">
     <div class="col-md-4">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Users</h5>
-                <p class="card-text fs-2">{{ users|length }}</p>
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                    <i class="fas fa-users fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1">Total Users</h6>
+                    <h3 class="fw-bold mb-0">{{ users|length }}</h3>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Add more cards for stats -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                    <i class="fas fa-comments fa-2x text-success"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1">Active Conversations</h6>
+                    <h3 class="fw-bold mb-0">{{ conversations_count or 0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                    <i class="fas fa-clock fa-2x text-warning"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-1">Pending Approvals</h6>
+                    <h3 class="fw-bold mb-0">{{ approvals_count or 0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<h3>Recent Users</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Name</th>
-            <th>Relationship Score</th>
-            <th>Joined</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for user in users %}
-        <tr>
-            <td>{{ user.telegram_id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.first_name }} {{ user.last_name }}</td>
-            <td><span class="badge bg-info text-dark">{{ user.relationship_score }}</span></td>
-            <td>{{ user.created_at }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="card">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Recent Users</h5>
+        <button class="btn btn-sm btn-outline-primary">View All</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">User</th>
+                    <th>Relationship</th>
+                    <th>Joined Date</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-light p-2 me-2">
+                                <i class="fas fa-user text-secondary"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">{{ user.first_name }} {{ user.last_name }}</div>
+                                <div class="small text-muted">@{{ user.username or 'unknown' }} (ID: {{ user.telegram_id }})</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill {% if user.relationship_score > 10 %}bg-success{% elif user.relationship_score < 0 %}bg-danger{% else %}bg-info{% endif %} text-dark">
+                            {{ user.relationship_score }}
+                        </span>
+                    </td>
+                    <td>{{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'N/A' }}</td>
+                    <td class="text-end pe-4">
+                        <button class="btn btn-sm btn-light border"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-sm btn-light border"><i class="fas fa-comment-dots"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

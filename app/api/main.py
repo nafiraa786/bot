@@ -42,7 +42,18 @@ async def dashboard_home(request: Request, db: AsyncSession = Depends(get_db)):
 
     users_result = await db.execute(select(User))
     users = users_result.scalars().all()
-    return templates.TemplateResponse("index.html", {"request": request, "users": users})
+
+    # Extra stats for the dashboard
+    from datetime import datetime
+    now_str = datetime.now().strftime("%B %d, %Y")
+
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "users": users,
+        "now": now_str,
+        "conversations_count": 0, # placeholder
+        "approvals_count": 0      # placeholder
+    })
 
 @app.get("/approvals")
 async def view_approvals(request: Request, db: AsyncSession = Depends(get_db)):
