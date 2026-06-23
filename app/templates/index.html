@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Users</h5>
+                <p class="card-text fs-2">{{ users|length }}</p>
+            </div>
+        </div>
+    </div>
+    <!-- Add more cards for stats -->
+</div>
+
+<h3>Recent Users</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Joined</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.telegram_id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.first_name }} {{ user.last_name }}</td>
+            <td>{{ user.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

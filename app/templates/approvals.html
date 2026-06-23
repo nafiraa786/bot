@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Approval Queue</h2>
+<table class="table mt-4">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Reason</th>
+            <th>Content</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for approval in approvals %}
+        <tr>
+            <td>{{ approval.id }}</td>
+            <td><span class="badge bg-warning text-dark">{{ approval.reason }}</span></td>
+            <td>{{ approval.content }}</td>
+            <td>
+                <button class="btn btn-sm btn-success" onclick="approveItem({{ approval.id }})">Approve</button>
+                <button class="btn btn-sm btn-danger" onclick="rejectItem({{ approval.id }})">Reject</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
